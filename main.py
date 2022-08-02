@@ -36,7 +36,7 @@ def parse():
         opts, args = getopt.getopt(argv,"hb:e:d:t:",["direct","help"])
     except getopt.GetoptError:
         eprint("Unknown parameters!")
-        sys.exit(2)
+        sys.exit(1)
     for opt, arg in opts:
         if opt == "-h" or opt == "--help":
             help()            
@@ -51,20 +51,29 @@ def parse():
         elif opt in ("--direct"):
             direct = "true"
     
-    base = "https://idos.idnes.cz/brno/spojeni/vysledky/"
-    entry = f"?f={beginning}&t={end}&direct={direct}"
+    if (not beginning or not end):
+        eprint("No starting point or destination found. Aborting the program.")
+        sys.exit(2)
+    elif(beginning==end):
+        eprint("Overlapping stations. Aborting the program.")
+        sys.exit(3)
+    else:
+        base = "https://idos.idnes.cz/brno/spojeni/vysledky/"
+        entry = f"?f={beginning}&t={end}&direct={direct}"
     if (time):
         if (re.match("^(([0-1][0-9])|2[0-3]):[0-5][0-9]$", time)):
             entry = entry + "&time=" + time 
         else:
-            eprint("Wrong time format!")
-            sys.exit(3)
+            eprint("Wrong time format.")
+            sys.exit(4)
     
     if (date):
         try:
             datetime.datetime.strptime(date, '%d.%m.%Y')
         except ValueError:
-            raise ValueError("Wrong date format, should be DD.MM.YYYY")
+            eprint("Wrong date format, should be DD.MM.YYYY.")
+            sys.exit(5)
+            # raise ValueError("Wrong date format, should be DD.MM.YYYY.")
         entry = entry + "&date=" + date
 
     r = requests.get(base+entry)
