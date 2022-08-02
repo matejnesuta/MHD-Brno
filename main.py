@@ -12,13 +12,14 @@ def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 
-def main():
+def parse():
     argv = sys.argv[1:]
     beginning = ''
     end = ''
     date = ''
     time = ''
     direct = "false"
+    
     try:
         opts, args = getopt.getopt(argv,"hb:e:d:t:","direct")
     except getopt.GetoptError:
@@ -55,5 +56,10 @@ def main():
         entry = entry + "&date=" + date
 
     r = requests.get(base+entry)
-    print(r.json)
-main()
+    return r
+
+def scrape():
+    r = parse()
+    print(r.url)
+
+scrape()
