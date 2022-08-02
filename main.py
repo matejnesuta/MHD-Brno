@@ -1,55 +1,34 @@
-import sys, getopt
+import sys
 import requests
 import re
 import datetime
 from bs4 import BeautifulSoup as bs
-
-def help():
-    print("This script scrapes the IDOS web page for Brno and outputs the scheduled buses and trams on the stdout.")
-    print("\nusage:")
-    print("python main.py -b starting_destination -e end_destination [ options ] [ direct ]\n")
-    print("python main.py -h")
-    print("Required flags:")
-    print("\t-b [bus_stop]\t - sets the location we want to take a bus/from.")
-    print("\t-e [bus_stop]\t - sets our desired end location.")
-    print("\nOptional arguments:\n")
-    print("\t-d DD.MM.YYYY\t - sets the date of the journey (takes system date if flag is not set)")
-    print("\t-h | --help\t - prints help (this has priority over the rest of the flags)")
-    print("\t-t HH:MM\t - sets the time of bus/tram arrival to the starting location (takes system time if flag is not set)")
-    print("\t--direct\t - sets if the route should be direct or not (default is false)")
-    print("\n")
-    sys.exit(0)
+import argparse
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 
 def parse():
-    argv = sys.argv[1:]
     beginning = ''
     end = ''
     date = ''
     time = ''
-    direct = "false"
+    direct = False
     
-    try:
-        opts, args = getopt.getopt(argv,"hb:e:d:t:",["direct","help"])
-    except getopt.GetoptError:
-        eprint("Unknown parameters!")
-        sys.exit(1)
-    for opt, arg in opts:
-        if opt == "-h" or opt == "--help":
-            help()            
-        elif opt in ("-b"):
-            beginning = arg
-        elif opt in ("-e"):
-            end = arg
-        elif opt in ("-d"):
-            date = arg
-        elif opt in ("-t"):
-            time = arg
-        elif opt in ("--direct"):
-            direct = "true"
+    parser = argparse.ArgumentParser(description='This script scrapes the IDOS web page for Brno and outputs the scheduled buses and trams on the stdout.')
+    parser.add_argument("beginning")
+    parser.add_argument("end")
+    parser.add_argument("--direct", action="store_true")
+    parser.add_argument("-d")
+    parser.add_argument("-t")
+    args = parser.parse_args()
+
+    beginning = args.beginning
+    end = args.end
+    direct = args.direct
+    date = args.d
+    time = args.t
     
     if (not beginning or not end):
         eprint("No starting point or destination found. Aborting the program.")
@@ -73,7 +52,6 @@ def parse():
         except ValueError:
             eprint("Wrong date format, should be DD.MM.YYYY.")
             sys.exit(5)
-            # raise ValueError("Wrong date format, should be DD.MM.YYYY.")
         entry = entry + "&date=" + date
 
     r = requests.get(base+entry)
