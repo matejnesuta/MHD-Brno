@@ -1,22 +1,27 @@
+'''This script does nothing but sends a get request to the IDOS page
+and then scrapes the resulting page'''
+
 import sys
-import requests
 import re
 import datetime
-from bs4 import BeautifulSoup as bs
 import argparse
+import requests
+from bs4 import BeautifulSoup as bs
 
 def eprint(*args, **kwargs):
+    '''This prints on stderr with ease'''
     print(*args, file=sys.stderr, **kwargs)
 
 
 def parse():
+    '''This is where the arg parsing and url building happens'''
     beginning = ''
     end = ''
     date = ''
     time = ''
     direct = False
-    
-    parser = argparse.ArgumentParser(description='This script scrapes the IDOS web page for Brno and outputs the scheduled buses and trams on the stdout.')
+    parser = argparse.ArgumentParser(description='''This script scrapes the 
+        IDOS web page for Brno and outputs the scheduled buses and trams on the stdout.''')
     parser.add_argument("beginning")
     parser.add_argument("end")
     parser.add_argument("--direct", action="store_true")
@@ -29,11 +34,10 @@ def parse():
     direct = args.direct
     date = args.d
     time = args.t
-    
     if (not beginning or not end):
         eprint("No starting point or destination found. Aborting the program.")
         sys.exit(2)
-    elif(beginning==end):
+    elif beginning==end:
         eprint("Overlapping stations. Aborting the program.")
         sys.exit(3)
     else:
@@ -58,6 +62,7 @@ def parse():
     return r
 
 def scrape():
+    '''This is where the scraping happens'''
     r = parse()
     print(r.url)
     soup = bs(r.text, 'html.parser')
@@ -84,7 +89,6 @@ def scrape():
     # divs = soup.findAll("div", class_="title-container")
     # print(divs)
     # vehicle{
-        
     # }
     # departure = soup.find("div", class_="reset stations first last").find("span")
     # print(departure)
