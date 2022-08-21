@@ -12,6 +12,13 @@ def eprint(*args, **kwargs):
     '''This prints on stderr with ease'''
     print(*args, file=sys.stderr, **kwargs)
 
+def time_formatter(t):
+    # dot = time.find(":")
+    if t[1] ==":":
+        return "0"+t[:1] + t[1:]
+    else:
+        return t
+                 
 
 def parse():
     '''This is where the arg parsing and url building happens'''
@@ -64,34 +71,41 @@ def parse():
 def scrape():
     '''This is where the scraping happens'''
     r = parse()
-    print(r.url)
+    # print(r.url)
     soup = bs(r.text, 'html.parser')
     divs = soup.find("div", { "class" : "connection-list" }).findAll("div", { "class" : "box"}, recursive=False)
     for div in divs:
+        print("")
         header = div.find("h2")
         date = header.find("span").extract().string
-        arrival = header.string
+        arrival = time_formatter(header.string)
         dot = date.find(".")
         if date[4]==".":
             date = date[:dot+1] + "0" + date[dot+1:]
             date = date[:5] + date[6:]
         date = date.replace(".","-")
+        print("_"*80+"\n")
         p = div.find("p").text
         print("-"*80)
         print("|", arrival, "|", date, "|",p)
         print("-"*80)
         vehicles = div.findAll("div", { "class" : "outside-of-popup"})
         for vehicle in vehicles:
+            walk = vehicle.find("div", { "class" : "walk"})
+            if walk != None:
+                print("\n  "+walk.text.strip())
             name = vehicle.find("h3").text
-            print(name)
-            stations = vehicle.find("ul").text
-            print(stations)
-    # divs = soup.findAll("div", class_="title-container")
-    # print(divs)
-    # vehicle{
-    # }
-    # departure = soup.find("div", class_="reset stations first last").find("span")
-    # print(departure)
-    # for child in div:
-    #     print(child)
+            border = len(name)
+            print("  "+"-"*(border+2))
+            print("  |"+name+"|")
+            print("  "+"-"*(border+2))
+            stations = vehicle.findAll("li")
+            for station in stations:
+                time = time_formatter(station.find("p", {"class": "time"}).text)
+                zone = station.find("span").extract().text
+                name = station.find("p", {"class": "station"}).get_text()
+                print(time.rjust(7," ")+" "+name.rjust(30, " ")+"   zone: "+zone)
+            print("_"*80)
+        print("")
+    print("")
 scrape()
